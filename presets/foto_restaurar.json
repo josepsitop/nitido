@@ -1,0 +1,15 @@
+{
+  "name": "Foto: restaurar",
+  "model": "",
+  "provider": "auto",
+  "tile": 0,
+  "prefilter": "",
+  "max_height": 0,
+  "encoder": "libx265",
+  "crf": 20,
+  "speed": "slow",
+  "ten_bit": true,
+  "container": "mkv",
+  "audio": "copy",
+  "image_format": "png"
+}

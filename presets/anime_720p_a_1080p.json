@@ -1,0 +1,15 @@
+{
+  "name": "Anime 720p a 1080p",
+  "model": "",
+  "provider": "auto",
+  "tile": 0,
+  "prefilter": "hqdn3d=1.0:1.0:4:4",
+  "max_height": 1080,
+  "encoder": "libx265",
+  "crf": 21,
+  "speed": "slow",
+  "ten_bit": true,
+  "container": "mkv",
+  "audio": "copy",
+  "image_format": "png"
+}

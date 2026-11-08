@@ -1,0 +1,15 @@
+{
+  "name": "Mínimo peso (AV1)",
+  "model": "",
+  "provider": "auto",
+  "tile": 0,
+  "prefilter": "hqdn3d=1.5:1.5:6:6",
+  "max_height": 1080,
+  "encoder": "libsvtav1",
+  "crf": 30,
+  "speed": "balanced",
+  "ten_bit": true,
+  "container": "mkv",
+  "audio": "copy",
+  "image_format": "png"
+}
