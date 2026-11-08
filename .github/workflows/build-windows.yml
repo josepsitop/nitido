@@ -1,0 +1,53 @@
+name: Build Windows
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt pyinstaller
+
+      - name: Compilar con PyInstaller
+        run: pyinstaller --noconfirm --windowed --name Nitido --collect-all onnxruntime run.py
+
+      - name: Añadir ffmpeg, presets y carpeta de modelos
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip" -OutFile ffmpeg.zip
+          Expand-Archive ffmpeg.zip -DestinationPath ffmpeg_tmp
+          New-Item -ItemType Directory -Force dist/Nitido/bin | Out-Null
+          Copy-Item ffmpeg_tmp/*/bin/ffmpeg.exe, ffmpeg_tmp/*/bin/ffprobe.exe dist/Nitido/bin/
+          Copy-Item presets dist/Nitido/presets -Recurse
+          New-Item -ItemType Directory -Force dist/Nitido/models | Out-Null
+          Copy-Item models/README.md dist/Nitido/models/
+          Copy-Item README.md dist/Nitido/
+
+      - name: Comprimir
+        shell: pwsh
+        run: Compress-Archive -Path dist/Nitido -DestinationPath Nitido-win64.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Nitido-win64
+          path: Nitido-win64.zip
+
+      - name: Publicar release (solo con tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Nitido-win64.zip
