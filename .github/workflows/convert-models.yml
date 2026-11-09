@@ -1,0 +1,28 @@
+name: Convertir modelos a ONNX
+
+on:
+  workflow_dispatch:
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias (PyTorch CPU)
+        run: |
+          pip install "numpy<2"
+          pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cpu
+          pip install spandrel onnx onnxruntime
+
+      - name: Descargar y convertir
+        run: python tools/convert_to_onnx.py --list tools/models_to_convert.json --out onnx_out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: modelos-onnx
+          path: onnx_out/
