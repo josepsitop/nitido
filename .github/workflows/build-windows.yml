@@ -34,8 +34,8 @@ jobs:
           Copy-Item ffmpeg_tmp/*/bin/ffmpeg.exe, ffmpeg_tmp/*/bin/ffprobe.exe dist/Nitido/bin/
           Copy-Item presets dist/Nitido/presets -Recurse
           New-Item -ItemType Directory -Force dist/Nitido/models | Out-Null
-          Copy-Item models/README.md dist/Nitido/models/
-          Copy-Item README.md dist/Nitido/
+          Copy-Item models/README.md, models/catalog.json dist/Nitido/models/
+          Copy-Item README.md, MODELOS.md dist/Nitido/
 
       - name: Comprimir
         shell: pwsh
