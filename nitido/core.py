@@ -246,12 +246,17 @@ class Engine:
         inp = self.sess.get_inputs()[0]
         self.name = inp.name
         self.dtype = np.float16 if "float16" in inp.type else np.float32
-        h = inp.shape[2]
-        if isinstance(h, int) and h > 0:
-            raise RuntimeError("Este modelo ONNX tiene tamaño fijo. Exporta/convierte el modelo "
-                               "con ejes dinámicos (alto y ancho variables).")
-        out = self.sess.run(None, {self.name: np.zeros((1, 3, 64, 64), self.dtype)})[0]
-        self.scale = out.shape[3] // 64
+        h, w = inp.shape[2], inp.shape[3]
+        fixed_h, fixed_w = isinstance(h, int) and h > 0, isinstance(w, int) and w > 0
+        if fixed_h != fixed_w:
+            raise RuntimeError("Modelo ONNX con una sola dimensión fija: no soportado.")
+        self.fixed = (h, w) if fixed_h else None
+        ph, pw = self.fixed or (64, 64)
+        if self.fixed:
+            log(f"Modelo de tamaño fijo ({w}x{h}): se procesa por mosaicos y será más lento. "
+                "Si puedes, conviértelo con ejes dinámicos (ver MODELOS.md).")
+        out = self.sess.run(None, {self.name: np.zeros((1, 3, ph, pw), self.dtype)})[0]
+        self.scale = out.shape[3] // pw
         log(f"Escala del modelo: {self.scale}x")
 
     def _run(self, img):
@@ -261,7 +266,26 @@ class Engine:
         y = np.clip(y * 255.0 + 0.5, 0, 255).astype(np.uint8)
         return np.ascontiguousarray(y.transpose(1, 2, 0))
 
+    def _window(self, img, ya, xa, fh, fw):
+        h, w = img.shape[:2]
+        y0, x0, y1, x1 = max(ya, 0), max(xa, 0), min(ya + fh, h), min(xa + fw, w)
+        return np.pad(img[y0:y1, x0:x1], ((y0 - ya, ya + fh - y1), (x0 - xa, xa + fw - x1), (0, 0)), mode="edge")
+
+    def _upscale_fixed(self, img, pad=8):
+        fh, fw = self.fixed
+        s, (h, w, _) = self.scale, img.shape
+        sh, sw = max(fh - 2 * pad, 1), max(fw - 2 * pad, 1)
+        out = np.empty((h * s, w * s, 3), np.uint8)
+        for y0 in range(0, h, sh):
+            for x0 in range(0, w, sw):
+                y1, x1 = min(y0 + sh, h), min(x0 + sw, w)
+                t = self._run(self._window(img, y0 - pad, x0 - pad, fh, fw))
+                out[y0 * s:y1 * s, x0 * s:x1 * s] = t[pad * s:(pad + y1 - y0) * s, pad * s:(pad + x1 - x0) * s]
+        return out
+
     def upscale(self, img, tile=0, pad=16):
+        if self.fixed:
+            return self._upscale_fixed(img)
         h, w, _ = img.shape
         if tile <= 0 or (h <= tile and w <= tile):
             return self._run(img)

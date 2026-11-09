@@ -3,14 +3,14 @@ import sys
 import threading
 from pathlib import Path
 
-from PySide6.QtCore import QThread, QUrl, Signal
+from PySide6.QtCore import Qt, QThread, QUrl, Signal
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
-    QApplication, QCheckBox, QComboBox, QFileDialog, QFormLayout, QGroupBox, QHBoxLayout,
-    QInputDialog, QLabel, QLineEdit, QListWidget, QMainWindow, QMessageBox, QPlainTextEdit,
-    QProgressBar, QPushButton, QSpinBox, QVBoxLayout, QWidget)
+    QApplication, QCheckBox, QComboBox, QDialog, QFileDialog, QFormLayout, QGroupBox, QHBoxLayout,
+    QInputDialog, QLabel, QLineEdit, QListWidget, QListWidgetItem, QMainWindow, QMessageBox,
+    QPlainTextEdit, QProgressBar, QPushButton, QSpinBox, QVBoxLayout, QWidget)
 
-from . import __version__, core
+from . import __version__, core, models
 
 MEDIA = ("Video/foto (*.mp4 *.mkv *.avi *.mov *.webm *.m4v *.ts *.wmv *.flv *.png *.jpg *.jpeg *.webp *.bmp *.tif *.tiff);;Todos (*.*)")
 
@@ -41,6 +41,98 @@ class Worker(QThread):
                 break
             except Exception as e:
                 self.log.emit(f"✖ Error: {e}")
+
+
+class DownloadWorker(QThread):
+    progress = Signal(int, int)
+    msg = Signal(str)
+
+    def __init__(self, entries):
+        super().__init__()
+        self.entries = entries
+        self.cancel = threading.Event()
+
+    def run(self):
+        for e in self.entries:
+            if self.cancel.is_set():
+                break
+            self.msg.emit(f"↓ {e['name']}…")
+            try:
+                names = models.download(e, lambda d, t: self.progress.emit(d, t), self.cancel)
+                self.msg.emit("✔ Guardado: " + ", ".join(names))
+            except core.Cancelled:
+                self.msg.emit("⏹ Cancelado")
+                break
+            except Exception as ex:
+                self.msg.emit(f"✖ {e['name']}: {ex}")
+
+
+class ModelsDialog(QDialog):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.setWindowTitle("Descargar modelos")
+        self.resize(820, 440)
+        self.parent_win = parent
+        self.worker = None
+        try:
+            self.catalog = models.load_catalog()
+        except Exception:
+            self.catalog = []
+        lay = QVBoxLayout(self)
+        lay.addWidget(QLabel("Modelos ONNX listos para usar (editable en models/catalog.json). "
+                             "Revisa la licencia de cada uno: casi todos son de uso personal/no comercial."))
+        self.lst = QListWidget()
+        for e in self.catalog:
+            size = f" · {e['size_mb']} MB" if e.get("size_mb") else ""
+            it = QListWidgetItem(f"{e['name']}   [{e['scale']}x{size} · {e['license']}]\n      {e['use']}")
+            it.setFlags(it.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+            it.setCheckState(Qt.CheckState.Unchecked)
+            self.lst.addItem(it)
+        lay.addWidget(self.lst, 1)
+        self.bar = QProgressBar()
+        self.lbl = QLabel("Marca los modelos y pulsa Descargar.")
+        lay.addWidget(self.bar)
+        lay.addWidget(self.lbl)
+        row = QHBoxLayout()
+        self.btn_go, b_page, b_close = QPushButton("Descargar seleccionados"), QPushButton("Abrir página del modelo"), QPushButton("Cerrar")
+        self.btn_go.clicked.connect(self.go)
+        b_page.clicked.connect(self.open_page)
+        b_close.clicked.connect(self.close)
+        for b in (self.btn_go, b_page, b_close):
+            row.addWidget(b)
+        lay.addLayout(row)
+
+    def open_page(self):
+        i = self.lst.currentRow()
+        if 0 <= i < len(self.catalog) and self.catalog[i].get("page"):
+            QDesktopServices.openUrl(QUrl(self.catalog[i]["page"]))
+
+    def go(self):
+        sel = [self.catalog[i] for i in range(self.lst.count())
+               if self.lst.item(i).checkState() == Qt.CheckState.Checked]
+        if not sel:
+            self.lbl.setText("Marca al menos un modelo.")
+            return
+        self.btn_go.setEnabled(False)
+        self.worker = DownloadWorker(sel)
+        self.worker.progress.connect(self.on_progress)
+        self.worker.msg.connect(self.lbl.setText)
+        self.worker.finished.connect(self.done)
+        self.worker.start()
+
+    def on_progress(self, d, t):
+        self.bar.setMaximum(max(t, 1))
+        self.bar.setValue(d if t else 0)
+
+    def done(self):
+        self.btn_go.setEnabled(True)
+        self.parent_win.refresh_models()
+
+    def closeEvent(self, e):
+        if self.worker and self.worker.isRunning():
+            self.worker.cancel.set()
+            self.worker.wait(5000)
+        e.accept()
 
 
 class MainWindow(QMainWindow):
@@ -107,14 +199,20 @@ class MainWindow(QMainWindow):
         g3 = QGroupBox("Ajustes del preset (editables)")
         f = QFormLayout(g3)
         self.cb_model = QComboBox()
-        b_mod, b_ref = QPushButton("Abrir carpeta"), QPushButton("Recargar")
-        b_mod.clicked.connect(lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(core.models_dir()))))
+        b_ref = QPushButton("Recargar")
         b_ref.clicked.connect(self.refresh_models)
         row = QHBoxLayout()
         row.addWidget(self.cb_model, 1)
-        row.addWidget(b_mod)
         row.addWidget(b_ref)
         f.addRow("Modelo IA (.onnx)", row)
+        b_dl, b_imp, b_mod = QPushButton("Descargar modelos…"), QPushButton("Importar .onnx…"), QPushButton("Abrir carpeta")
+        b_dl.clicked.connect(self.open_models_dialog)
+        b_imp.clicked.connect(self.import_models)
+        b_mod.clicked.connect(lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(core.models_dir()))))
+        row = QHBoxLayout()
+        for b in (b_dl, b_imp, b_mod):
+            row.addWidget(b)
+        f.addRow("", row)
 
         self.cb_prov = QComboBox()
         for t, v in (("Auto (TensorRT → CUDA → DirectML)", "auto"), ("TensorRT", "tensorrt"),
@@ -250,6 +348,22 @@ class MainWindow(QMainWindow):
         self.cb_audio.setCurrentText(d["audio"])
         self.cb_img.setCurrentText(d["image_format"])
 
+    def open_models_dialog(self):
+        ModelsDialog(self).exec()
+
+    def import_models(self):
+        files, _ = QFileDialog.getOpenFileNames(self, "Importar modelos", "", "Modelos ONNX (*.onnx)")
+        last = ""
+        for f in files:
+            try:
+                last = models.import_file(f)
+                self.log(f"✔ Importado: {last}")
+            except Exception as e:
+                self.log(f"✖ {e}")
+        self.refresh_models()
+        if last:
+            self.cb_model.setCurrentText(last)
+
     def refresh_models(self):
         cur = self.cb_model.currentText()
         self.cb_model.clear()
@@ -294,7 +408,10 @@ class MainWindow(QMainWindow):
     def _startup_log(self):
         self.log(f"Carpeta base: {core.base_dir()}")
         self.log("ffmpeg: " + (core.find_tool("ffmpeg") or "NO ENCONTRADO (carpeta bin/ o PATH)"))
-        self.log(f"Modelos .onnx encontrados: {len(core.list_models())}  (carpeta models/)")
+        n = len(core.list_models())
+        self.log(f"Modelos .onnx encontrados: {n}  (carpeta models/)")
+        if n == 0:
+            self.log("→ Pulsa «Descargar modelos…» o «Importar .onnx…» para empezar.")
         try:
             import onnxruntime as ort
             self.log("Backends disponibles: " + ", ".join(ort.get_available_providers()))

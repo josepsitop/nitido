@@ -1,6 +1,6 @@
 {
   "name": "Borrador rápido (probar modelos)",
-  "model": "",
+  "model": "2x_RealESRGANv2_AnimeVideo_xs.onnx",
   "provider": "auto",
   "tile": 0,
   "prefilter": "",

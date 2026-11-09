@@ -1,0 +1,43 @@
+[
+  {
+    "id": "liveaction_span",
+    "name": "2xLiveActionV1 SPAN",
+    "use": "Película / live action / video digital (quita compresión y halos, conserva detalle)",
+    "scale": 2,
+    "size_mb": 1.6,
+    "license": "CC-BY-NC-SA-4.0",
+    "url": "https://github.com/jcj83429/upscaling/raw/f73a3a02874360ec6ced18f8bdd8e43b5d7bba57/2xLiveActionV1_SPAN/2xLiveActionV1_SPAN_490000.onnx",
+    "file": "2xLiveActionV1_SPAN_490000.onnx",
+    "page": "https://openmodeldb.info/models/2x-LiveActionV1-SPAN"
+  },
+  {
+    "id": "animejanai_hd_v3",
+    "name": "AnimeJaNai HD V3 (Compact, UltraCompact, SuperUltraCompact)",
+    "use": "Anime HD 720p/1080p: corrige el desenfoque del escalado, muy fiel al original",
+    "scale": 2,
+    "size_mb": null,
+    "license": "CC-BY-NC-SA-4.0",
+    "url": "https://github.com/the-database/mpv-upscale-2x_animejanai/releases/download/3.0.0/2x_AnimeJaNai_HD_V3_ModelsOnly.zip",
+    "page": "https://github.com/the-database/mpv-AnimeJaNai"
+  },
+  {
+    "id": "animejanai_v2",
+    "name": "AnimeJaNai V2 (Compact, UltraCompact, SuperUltraCompact)",
+    "use": "Anime: generación anterior, funciona bien en GPUs que no llegan a tiempo real",
+    "scale": 2,
+    "size_mb": null,
+    "license": "CC-BY-NC-SA-4.0",
+    "url": "https://github.com/the-database/mpv-upscale-2x_animejanai/releases/download/2.0.0/2x_AnimeJaNai_V2_ModelsOnly.zip",
+    "page": "https://github.com/the-database/mpv-AnimeJaNai"
+  },
+  {
+    "id": "animejanai_v1",
+    "name": "AnimeJaNai v1 (Standard, Strong; Compact/Ultra/SuperUltra)",
+    "use": "Anime; la versión Compact se recomienda para fuentes SD",
+    "scale": 2,
+    "size_mb": 2.3,
+    "license": "CC-BY-NC-SA-4.0",
+    "url": "https://github.com/the-database/mpv-upscale-2x_animejanai/releases/download/1.0.0/mpv-upscale-2x_animejanai_v1.zip",
+    "page": "https://openmodeldb.info/models/2x-AnimeJaNai-Standard-v1-Compact"
+  }
+]

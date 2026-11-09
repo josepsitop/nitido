@@ -1,0 +1,50 @@
+[
+  {
+    "file": "2x_RealESRGANv2_AnimeVideo_xs.onnx",
+    "license": "BSD-3-Clause",
+    "use": "Anime video 2x, muy ligero",
+    "url": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.3.0/RealESRGANv2-animevideo-xsx2.pth"
+  },
+  {
+    "file": "4x_RealESR_AnimeVideo_v3.onnx",
+    "license": "BSD-3-Clause",
+    "use": "Anime video 4x (SD/480p → grande), Compact",
+    "url": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-animevideov3.pth"
+  },
+  {
+    "file": "2x_HFA2kAVCCompact.onnx",
+    "license": "CC-BY-4.0",
+    "use": "Anime con compresión H.264, 2x Compact",
+    "url": "https://github.com/Phhofm/models/raw/main/2xHFA2kAVCCompact/2xHFA2kAVCCompact.pth"
+  },
+  {
+    "file": "2x_AniScale2S_Compact.onnx",
+    "license": "CC-BY-NC-4.0",
+    "use": "Anime post-2000 (WEB/DVD), buena limpieza de compresión",
+    "url": "https://github.com/Sirosky/Upscale-Hub/releases/download/AniScale2/2x_AniScale2S_Compact_i8_60K.pth"
+  },
+  {
+    "file": "2x_ModernSpanimationV1.onnx",
+    "license": "MIT",
+    "use": "Anime 2x SPAN, rápido",
+    "url": "https://github.com/TNTwise/Models/releases/download/2x_ModernSpanimationV1/2x_ModernSpanimationV1.pth"
+  },
+  {
+    "file": "1x_BroadcastToStudio_Compact.onnx",
+    "license": "CC-BY-NC-SA-4.0",
+    "use": "Limpieza 1x de material de TV/broadcast (sin cambiar tamaño)",
+    "url": "https://github.com/Kim2091/Kim2091-Models/releases/download/1x-BroadcastToStudio_Compact/1x-BroadcastToStudio_Compact.pth"
+  },
+  {
+    "file": "4x_PurePhoto_SPAN.onnx",
+    "license": "CC-BY-SA-4.0",
+    "use": "Fotos 4x, SPAN rápido",
+    "url": "https://github.com/starinspace/StarinspaceUpscale/releases/download/Models/4xPurePhoto-span.pth"
+  },
+  {
+    "file": "2x_RealESRGAN_x2plus.onnx",
+    "license": "BSD-3-Clause",
+    "use": "Fotos 2x, calidad alta pero pesado (RRDBNet)",
+    "url": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.1/RealESRGAN_x2plus.pth"
+  }
+]

@@ -12,7 +12,8 @@ App personal para **reescalar y limpiar video y fotos con IA** en Windows. Usa m
 
 ## Uso
 
-1. Pon uno o más modelos `.onnx` en `models/` (ver `models/README.md`).
+1. Consigue modelos: botón **Descargar modelos…** en la app, o mira **MODELOS.md** (enlaces, licencias, qué elegir
+   y cómo convertir los `.pth` con el workflow *Convertir modelos a ONNX*).
 2. Abre `Nitido.exe`, arrastra tus videos/fotos, elige un preset y pulsa **Procesar**.
 3. Usa **Probar solo los primeros N s** para comparar modelos y presets antes de renderizar una película entera.
 
@@ -43,7 +44,8 @@ Puntos de partida para el peso: x265 CRF 18–22, NVENC cq 22–26, AV1 CRF 26�
 
 ## Limitaciones actuales
 
-- Modelos ONNX con ejes dinámicos (alto/ancho variables).
+- Modelos de tamaño fijo funcionan por mosaicos (lento); lo ideal son ONNX con ejes dinámicos.
+- Un solo modelo por trabajo (aún no se pueden encadenar). Sin restauración de caras.
 - Sin HDR/Dolby Vision (convierte a SDR antes) ni video con fps variable (se fuerza fps constante).
 - Aún sin interpolación de frames (RIFE) ni backend VapourSynth.
 

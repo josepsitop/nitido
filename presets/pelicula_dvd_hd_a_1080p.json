@@ -1,6 +1,6 @@
 {
   "name": "Película DVD/HD a 1080p",
-  "model": "",
+  "model": "2xLiveActionV1_SPAN_490000.onnx",
   "provider": "auto",
   "tile": 0,
   "prefilter": "hqdn3d=1.5:1.2:5:4",

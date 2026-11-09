@@ -1,6 +1,6 @@
 {
   "name": "Foto: restaurar",
-  "model": "",
+  "model": "4x_PurePhoto_SPAN.onnx",
   "provider": "auto",
   "tile": 0,
   "prefilter": "",
